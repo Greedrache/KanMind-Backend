@@ -3,6 +3,16 @@ from .models import Board, Task
 
 
 
+
+
+
+class TaskDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Task
+        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'board']
+
+
 class CreateBoardSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -11,7 +21,7 @@ class CreateBoardSerializer(serializers.ModelSerializer):
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
-    tasks = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    tasks = TaskDetailSerializer(many=True, read_only=True)
 
     class Meta:
         model = Board
@@ -23,4 +33,7 @@ class CreateTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'priority', 'date', 'board']
+        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'board']
+
+
+
