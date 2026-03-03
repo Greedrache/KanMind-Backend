@@ -7,7 +7,15 @@ class CreateBoardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Board
-        fields = ['title', 'emails']
+        fields = ['id', 'title', 'emails']
+
+
+class BoardDetailSerializer(serializers.ModelSerializer):
+    tasks = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = Board
+        fields = ['id', 'title', 'emails', 'tasks']
 
 
 
@@ -15,4 +23,4 @@ class CreateTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ['title', 'description', 'priority', 'date', 'board']
+        fields = ['id', 'title', 'description', 'priority', 'date', 'board']
