@@ -14,18 +14,26 @@ class TaskDetailSerializer(serializers.ModelSerializer):
 
 
 class CreateBoardSerializer(serializers.ModelSerializer):
+    members = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
-        fields = ['id', 'title', 'emails']
+        fields = ['id', 'title', 'emails', 'members']
+
+    def get_members(self, obj):
+        return [ member.user.username for member in obj.members.all() ]
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
     tasks = TaskDetailSerializer(many=True, read_only=True)
+    members = serializers.SerializerMethodField()
 
     class Meta:
         model = Board
-        fields = ['id', 'title', 'emails', 'tasks']
+        fields = ['id', 'title', 'emails', 'tasks', 'members']
+
+    def get_members(self, obj):
+        return [ member.user.username for member in obj.members.all() ]
 
 
 

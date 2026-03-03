@@ -11,7 +11,14 @@ from rest_framework import status
 
 class CreateBoardView(generics.ListCreateAPIView):
     queryset = Board.objects.all()
-    serializer_class = CreateBoardSerializer
+
+    def get_serializer_class(self):
+        # Wenn wir nur lesen (GET), liefern wir alles im Detail aus:
+        if self.request.method == 'GET':
+            return BoardDetailSerializer
+        # Für alle anderen (wie POST), nehmen wir den normalen:
+        return CreateBoardSerializer
+
 
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Board.objects.all()
@@ -34,8 +41,15 @@ class AssignedTasksView(generics.ListAPIView):
     serializer_class = TaskDetailSerializer
 
     def get_queryset(self):
-        user = self.request.user
-        return Task.objects.filter(assignee=str(user.id))
+        return Task.objects.all()
         
-        # Falls du stattdessen den Usernamen im Feld speicherst, nutze stattdessen das hier:
-       # return Task.objects.filter(assignee=user.username)
+
+
+
+class ReviewTasksView(generics.ListAPIView):
+    serializer_class = TaskDetailSerializer
+
+    def get_queryset(self):
+        return Task.objects.all()
+        
+      
