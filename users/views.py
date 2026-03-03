@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
+from django.contrib.auth.models import User
 
 
 class UserProfileList(generics.ListCreateAPIView):
@@ -22,18 +23,27 @@ class CustomLoginView(ObtainAuthToken):
     permission_classes = [AllowAny]  # Allow anyone to access this view
 
     def  post(self, request):
-        serializer = self.serializer_class(data=request.data)
-       # data = {}
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        try:
+            user_obj = User.objects.get(email=email)
+            username = user_obj.username
+        except User.DoesNotExist:
+            username = None
+
+        serializer = self.serializer_class(data={'username': username, 'password': password}, context={'request': request})
 
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)  # Create a token for the new user
-           # data = {"message": "User registered successfully.", "token": token.key}
-            return Response({"message": f"User registered successfully", "welcome": f" {user.username}!", "token": token.key,}, status=status.HTTP_201_CREATED)
+            token, created = Token.objects.get_or_create(user=user)  # Create a token for the user
+            return Response({
+                "token": token.key,
+                "user_id": user.id,
+                "email": user.email,
+                "fullname": user.username
+            }, status=status.HTTP_200_OK)
         
-        else:
-            user=serializer.errors
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -42,15 +52,15 @@ class RegistrationView(APIView):
 
     def  post(self, request):
         serializer = RegistrationSerializer(data=request.data)
-       # data = {}
 
         if serializer.is_valid():
             user = serializer.save()
             token, created = Token.objects.get_or_create(user=user)  # Create a token for the new user
-           # data = {"message": "User registered successfully.", "token": token.key}
-            return Response({"message": f"User registered successfully", "welcome": f" {user.username}!", "token": token.key,}, status=status.HTTP_201_CREATED)
+            return Response({
+                "token": token.key,
+                "user_id": user.id,
+                "email": user.email,
+                "fullname": user.username
+            }, status=status.HTTP_201_CREATED)
         
-        else:
-            user=serializer.errors
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
