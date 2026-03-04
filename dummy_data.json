@@ -1,0 +1,99 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "123123123",
+      "is_superuser": true,
+      "username": "admin",
+      "first_name": "Admin",
+      "last_name": "User",
+      "email": "admin@example.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2024-01-01T12:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "password": "123123123",
+      "is_superuser": false,
+      "username": "gast",
+      "first_name": "Gast",
+      "last_name": "Benutzer",
+      "email": "gast@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T12:00:00Z"
+    }
+  },
+  {
+    "model": "users.userprofile",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "bio": "Ich bin der Administrator.",
+      "location": "Berlin"
+    }
+  },
+  {
+    "model": "users.userprofile",
+    "pk": 2,
+    "fields": {
+      "user": 2,
+      "bio": "Hallo, ich bin nur ein Gast.",
+      "location": "Internet"
+    }
+  },
+  {
+    "model": "mental.board",
+    "pk": 1,
+    "fields": {
+      "title": "Willkommens-Board (Gast)",
+      "emails": "gast@example.com",
+      "owner": 2,
+      "members": [1, 2],
+      "added_members": [1, 2]
+    }
+  },
+  {
+    "model": "mental.task",
+    "pk": 1,
+    "fields": {
+      "title": "Kochen lernen",
+      "description": "Du musst lernen, wie man kocht, damit du nicht verhungerst. Es ist wichtig, dass du das Kochen beherrschst, um dich selbst zu versorgen und gesunde Mahlzeiten zuzubereiten.",
+      "priority": "high",
+      "due_date": "2026-12-31",
+      "reviewer": 1,
+      "assignee": 2,
+      "status": "done",
+      "board": 1
+    }
+  },
+  {
+    "model": "mental.task",
+    "pk": 2,
+    "fields": {
+      "title": "Daten laden",
+      "description": "Du musst Steuern zahlen, damit du die Testdaten laden kannst.",
+      "priority": "medium",
+      "due_date": "2026-12-31",
+      "reviewer": 2,
+      "assignee": 2,
+      "status": "in-progress",
+      "board": 1
+    }
+  },
+  {
+    "model": "mental.comment",
+    "pk": 1,
+    "fields": {
+      "task": 2,
+      "author": "Gast",
+      "content": "Super, die Testdaten funktionieren!",
+      "created_at": "2026-03-04T12:00:00Z"
+    }
+  }
+]
