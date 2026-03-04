@@ -20,7 +20,7 @@ class UserProfileDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CustomLoginView(ObtainAuthToken):
-    permission_classes = [AllowAny]  # Allow anyone to access this view
+    permission_classes = [AllowAny] 
 
     def  post(self, request):
         email = request.data.get('email')
@@ -36,7 +36,7 @@ class CustomLoginView(ObtainAuthToken):
 
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)  # Create a token for the user
+            token, created = Token.objects.get_or_create(user=user)  
             return Response({
                 "token": token.key,
                 "user_id": user.id,
@@ -48,14 +48,14 @@ class CustomLoginView(ObtainAuthToken):
 
 
 class RegistrationView(APIView):
-    permission_classes = [AllowAny]  # Allow anyone to access this view
+    permission_classes = [AllowAny]  
 
     def  post(self, request):
         serializer = RegistrationSerializer(data=request.data)
 
         if serializer.is_valid():
             user = serializer.save()
-            token, created = Token.objects.get_or_create(user=user)  # Create a token for the new user
+            token, created = Token.objects.get_or_create(user=user)  
             return Response({
                 "token": token.key,
                 "user_id": user.id,
