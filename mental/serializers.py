@@ -30,6 +30,12 @@ class TaskDetailSerializer(serializers.ModelSerializer):
     def get_comment_count(self, obj):
         return obj.comments.count()
 
+    def to_representation(self, instance): #Wandelt in JSON um fürs Frontend
+        rep = super().to_representation(instance)
+        rep['reviewer'] = BoardMemberSerializer(instance.reviewer).data if instance.reviewer else None #Wenn es Existiert, dann wird der Reviewer mit dem BoardMemberSerializer serialisiert, ansonsten wird None zurückgegeben
+        rep['assignee'] = BoardMemberSerializer(instance.assignee).data if instance.assignee else None #Wenn es Existiert, dann wird der Assignee mit dem BoardMemberSerializer serialisiert, ansonsten wird None zurückgegeben
+        return rep #Gibt Anpassung zurück
+
 
 class CreateBoardSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(
@@ -98,6 +104,12 @@ class CreateTaskSerializer(serializers.ModelSerializer):
         read_only_fields = ['comments'] 
 
     def get_comment_count(self, obj):
-        return obj.comments.count() 
+        return obj.comments.count()
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['reviewer'] = BoardMemberSerializer(instance.reviewer).data if instance.reviewer else None
+        rep['assignee'] = BoardMemberSerializer(instance.assignee).data if instance.assignee else None
+        return rep 
 
 
