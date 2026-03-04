@@ -6,6 +6,7 @@ from django.db import models
 class Board(models.Model):
     title = models.CharField(max_length=100)
     emails = models.CharField(max_length=100, blank=True)
+    owner = models.ForeignKey('users.UserProfile', related_name='owned_boards', on_delete=models.CASCADE, null=True, blank=True)
     members = models.ManyToManyField('users.UserProfile', related_name='boards', blank=True)
     added_members = models.ManyToManyField('users.UserProfile', related_name='added_boards', blank=True)
 

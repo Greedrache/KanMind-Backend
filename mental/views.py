@@ -2,10 +2,11 @@ from django.shortcuts import render
 
 # Create your views here.
 from rest_framework import generics
+from django.db.models import Q
 from mental.models import Board, Task, Comment
-from .serializers import BoardDetailSerializer, CommentSerializer, CreateBoardSerializer, CreateTaskSerializer, TaskDetailSerializer
+from .serializers import BoardDetailSerializer, CommentSerializer, CreateBoardSerializer, CreateTaskSerializer, TaskDetailSerializer, BoardSerializer
 from rest_framework.views import APIView, Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 
 from django.contrib.auth.models import User
@@ -13,14 +14,21 @@ from users.models import UserProfile
 
 
 class CreateBoardView(generics.ListCreateAPIView):
-    queryset = Board.objects.all()
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        return Board.objects.filter(Q(owner=profile) | Q(members=profile)).distinct()
 
     def get_serializer_class(self):
-        # Wenn wir nur lesen (GET), liefern wir alles im Detail aus:
         if self.request.method == 'GET':
-            return BoardDetailSerializer
-        # Für alle anderen (wie POST), nehmen wir den normalen:
+            return BoardSerializer
         return CreateBoardSerializer
+
+    def perform_create(self, serializer):
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        serializer.save(owner=profile)
 
 
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):

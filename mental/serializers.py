@@ -37,6 +37,29 @@ class TaskDetailSerializer(serializers.ModelSerializer):
         return rep #Gibt Anpassung zurück
 
 
+class BoardSerializer(serializers.ModelSerializer):
+    member_count = serializers.SerializerMethodField()
+    ticket_count = serializers.SerializerMethodField()
+    tasks_to_do_count = serializers.SerializerMethodField()
+    tasks_high_prio_count = serializers.SerializerMethodField()
+    owner_id = serializers.PrimaryKeyRelatedField(source='owner', read_only=True)
+
+    class Meta:
+        model = Board
+        fields = ['id', 'title', 'member_count', 'ticket_count', 'tasks_to_do_count', 'tasks_high_prio_count', 'owner_id']
+
+    def get_member_count(self, obj):
+        return obj.members.count()
+
+    def get_ticket_count(self, obj):
+        return obj.tasks.count()
+
+    def get_tasks_to_do_count(self, obj):
+        return obj.tasks.filter(status='to-do').count()
+
+    def get_tasks_high_prio_count(self, obj):
+        return obj.tasks.filter(priority='high').count()
+
 class CreateBoardSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(
         queryset=UserProfile.objects.all(),
@@ -44,19 +67,12 @@ class CreateBoardSerializer(serializers.ModelSerializer):
         required=False,
     )
 
-    member_count = serializers.SerializerMethodField()
-    ticket_count = serializers.SerializerMethodField()
-    tasks_to_do_count = serializers.SerializerMethodField()
-    tasks_high_prio_count = serializers.SerializerMethodField()
-
     class Meta:
         model = Board
-        fields = ['id', 'title', 'emails', 'members', 'member_count', 'ticket_count', 'tasks_to_do_count', 'tasks_high_prio_count']
+        fields = ['id', 'title', 'members']
 
     def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        rep['members'] = BoardMemberSerializer(instance.members.all(), many=True).data
-        return rep
+        return BoardSerializer(instance).data
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):

@@ -22,7 +22,7 @@ class UserProfileDetail(generics.RetrieveUpdateDestroyAPIView):
 class CustomLoginView(ObtainAuthToken):
     permission_classes = [AllowAny] 
 
-    def  post(self, request):
+    def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
 
@@ -39,9 +39,9 @@ class CustomLoginView(ObtainAuthToken):
             token, created = Token.objects.get_or_create(user=user)  
             return Response({
                 "token": token.key,
-                "user_id": user.id,
+                "fullname": user.first_name,
                 "email": user.email,
-                "fullname": user.username
+                "user_id": user.id
             }, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -50,7 +50,7 @@ class CustomLoginView(ObtainAuthToken):
 class RegistrationView(APIView):
     permission_classes = [AllowAny]  
 
-    def  post(self, request):
+    def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -58,9 +58,9 @@ class RegistrationView(APIView):
             token, created = Token.objects.get_or_create(user=user)  
             return Response({
                 "token": token.key,
-                "user_id": user.id,
+                "fullname": user.first_name,
                 "email": user.email,
-                "fullname": user.username
+                "user_id": user.id
             }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

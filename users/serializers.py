@@ -8,32 +8,32 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ['user', 'bio', 'location']
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
-    repeated_password = serializers.CharField(write_only=True)
-
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password', 'repeated_password']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
-
-    def save(self):
-        pw = self.validated_data['password']
-        pw_repeated = self.validated_data['repeated_password']
-        if pw != pw_repeated:
-            raise serializers.ValidationError("Passwords do not match.")
-        
-        account = User(
-            username=self.validated_data['username'],
-            email=self.validated_data['email']
-        )
-        account.set_password(pw)
-        account.save()
-        return account
+class RegistrationSerializer(serializers.Serializer):
+    fullname = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
+    repeated_password = serializers.CharField(write_only=True, required=True)
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email is already in use.")
         return value
+
+    def validate(self, data):
+        if data.get('password') != data.get('repeated_password'):
+            raise serializers.ValidationError({"repeated_password": "Passwords do not match."})
+        return data
+
+    def save(self):
+        fullname = self.validated_data['fullname']
+        email = self.validated_data['email']
+        password = self.validated_data['password']
+
+        user = User(
+            username=email,
+            email=email,
+            first_name=fullname
+        )
+        user.set_password(password)
+        user.save()
+        return user
