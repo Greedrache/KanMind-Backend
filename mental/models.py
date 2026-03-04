@@ -7,10 +7,12 @@ class Board(models.Model):
     title = models.CharField(max_length=100)
     emails = models.CharField(max_length=100, blank=True)
     members = models.ManyToManyField('users.UserProfile', related_name='boards', blank=True)
+    added_members = models.ManyToManyField('users.UserProfile', related_name='added_boards', blank=True)
+
 
     def __str__(self):
         return self.title
-    
+        
 
 
 

@@ -7,7 +7,9 @@ from .serializers import BoardDetailSerializer, CommentSerializer, CreateBoardSe
 from rest_framework.views import APIView, Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
-from django.db.models import Count
+
+from django.contrib.auth.models import User
+from users.models import UserProfile
 
 
 class CreateBoardView(generics.ListCreateAPIView):
@@ -65,3 +67,37 @@ class TaskCommentView(generics.ListCreateAPIView):
         task_id = self.kwargs.get('task_pk')
         author = self.request.user.username if self.request.user.is_authenticated else "Gast"
         serializer.save(task_id=task_id, author=author)
+
+
+
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def perform_update(self, serializer):
+        if self.request.user.is_authenticated:
+            serializer.save(author=self.request.user.username)
+        else:
+            serializer.save(author="Gast")
+
+
+class EmailCheckView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        email = (request.query_params.get('email') or '').strip()
+        if not email:
+            return Response({'detail': 'Query parameter "email" is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'detail': 'No user with this email.'}, status=status.HTTP_404_NOT_FOUND)
+        profile, _created = UserProfile.objects.get_or_create(user=user)
+        return Response(
+            {
+                'id': profile.id,
+                'email': user.email,
+                'fullname': user.username,
+            },
+            status=status.HTTP_200_OK,
+        )

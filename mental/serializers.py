@@ -1,5 +1,15 @@
 from rest_framework import serializers
 from .models import Board, Task, Comment
+from users.models import UserProfile
+
+
+class BoardMemberSerializer(serializers.ModelSerializer): #Member zu einem Board adden
+    email = serializers.EmailField(source='user.email', read_only=True)
+    fullname = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'email', 'fullname']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -22,7 +32,11 @@ class TaskDetailSerializer(serializers.ModelSerializer):
 
 
 class CreateBoardSerializer(serializers.ModelSerializer):
-    members = serializers.SerializerMethodField()
+    members = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(),
+        many=True,
+        required=False,
+    )
 
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
@@ -33,13 +47,19 @@ class CreateBoardSerializer(serializers.ModelSerializer):
         model = Board
         fields = ['id', 'title', 'emails', 'members', 'member_count', 'ticket_count', 'tasks_to_do_count', 'tasks_high_prio_count']
 
-    def get_members(self, obj):
-        return [ member.user.username for member in obj.members.all() ]
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['members'] = BoardMemberSerializer(instance.members.all(), many=True).data
+        return rep
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
     tasks = TaskDetailSerializer(many=True, read_only=True)
-    members = serializers.SerializerMethodField()
+    members = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(),
+        many=True,
+        required=False,
+    )
 
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
@@ -62,8 +82,10 @@ class BoardDetailSerializer(serializers.ModelSerializer):
         model = Board
         fields = ['id', 'title', 'emails', 'tasks', 'members', 'member_count', 'ticket_count', 'tasks_to_do_count', 'tasks_high_prio_count']
 
-    def get_members(self, obj):
-        return [ member.user.username for member in obj.members.all() ]
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['members'] = BoardMemberSerializer(instance.members.all(), many=True).data
+        return rep
 
 
 
