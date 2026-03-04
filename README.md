@@ -44,7 +44,13 @@ for user authentication, boards, and task management.
 <h3>5. Apply Migrations</h3>
 <pre><code>python manage.py migrate</code></pre>
 
-<h3>6. Run Development Server</h3>
+<h3>6. Load Dummy Data</h3>
+<pre><code>python manage.py loaddata dummy_data.json</code></pre>
+
+<h3>7. Reset All User Passwords (for Development)</h3>
+<pre><code>python manage.py shell -c "from django.contrib.auth.models import User; [u.set_password('123123123') or u.save() for u in User.objects.all()]"</code></pre>
+
+<h3>8. Run Development Server</h3>
 <pre><code>python manage.py runserver</code></pre>
 
 <p>
