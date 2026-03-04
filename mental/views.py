@@ -7,6 +7,7 @@ from .serializers import BoardDetailSerializer, CommentSerializer, CreateBoardSe
 from rest_framework.views import APIView, Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
+from django.db.models import Count
 
 
 class CreateBoardView(generics.ListCreateAPIView):
@@ -57,14 +58,10 @@ class TaskCommentView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
 
     def get_queryset(self):
-        # Schritt 1 (GET): Wir suchen in der URL nach der Task-ID (in Django oft "task_pk" genannt)
         task_id = self.kwargs.get('task_pk')
-        # Wir filtern die Tabelle: Gib mir nur Kommentare, die zu dieser Task-ID gehören!
-        return Comment.objects.filter(task_id=task_id)
+        return Comment.objects.filter(task_id=task_id) #Gibt nur die Kommentare die zu dem Task gehören zurück
 
     def perform_create(self, serializer):
-        # Schritt 2 (POST): Jemand schreibt einen neuen Kommentar.
         task_id = self.kwargs.get('task_pk')
         author = self.request.user.username if self.request.user.is_authenticated else "Gast"
-        # Wir speichern ihn in die Datenbank und hängen automatisch die Task-ID und den Namen des Users an!
         serializer.save(task_id=task_id, author=author)

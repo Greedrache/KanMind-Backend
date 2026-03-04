@@ -11,10 +11,14 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class TaskDetailSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
+    comment_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'board']
+        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'comment_count', 'board']
+
+    def get_comment_count(self, obj):
+        return obj.comments.count()
 
 
 class CreateBoardSerializer(serializers.ModelSerializer):
@@ -64,10 +68,14 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
 
 class CreateTaskSerializer(serializers.ModelSerializer):
+    comment_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'board']
+        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'comment_count', 'board']
         read_only_fields = ['comments'] 
+
+    def get_comment_count(self, obj):
+        return obj.comments.count() 
 
 
