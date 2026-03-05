@@ -150,7 +150,9 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['members'] = BoardMemberSerializer(instance.members.all(), many=True).data
+        rep['members_data'] = BoardMemberSerializer(instance.members.all(), many=True).data
+        if 'members' in rep:
+            del rep['members']
         return rep
 
 
