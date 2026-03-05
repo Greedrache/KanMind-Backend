@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Board, Task, Comment
 from users.models import UserProfile
+from django.contrib.auth.models import User
 
 
 class BoardMemberSerializer(serializers.ModelSerializer): #Member zu einem Board adden
@@ -62,7 +63,7 @@ class BoardSerializer(serializers.ModelSerializer):
 
 class CreateBoardSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(
-        queryset=UserProfile.objects.all(),
+        queryset=User.objects.all(),
         many=True,
         required=False,
     )
@@ -70,6 +71,19 @@ class CreateBoardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Board
         fields = ['id', 'title', 'members']
+
+    def create(self, validated_data):
+        users = validated_data.pop('members', [])
+        board = Board.objects.create(**validated_data)
+        
+        if users:
+            profiles = []
+            for user in users:
+                profile, _ = UserProfile.objects.get_or_create(user=user)
+                profiles.append(profile)
+            board.members.set(profiles)
+            
+        return board
 
     def to_representation(self, instance):
         return BoardSerializer(instance).data
