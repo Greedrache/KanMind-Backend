@@ -17,7 +17,7 @@ for user authentication, boards, and task management.
 
 <h2>Tech Stack</h2>
 <ul>
-  <li>Python 3.10+</li>
+  <li>Python 3.14+</li>
   <li>Django</li>
   <li>Django REST Framework</li>
   <li>SQLite (development)</li>
@@ -44,10 +44,12 @@ for user authentication, boards, and task management.
 <h3>5. Apply Migrations</h3>
 <pre><code>python manage.py migrate</code></pre>
 
-<h3>6. Load Dummy Data</h3>
+<h3>6. Load Dummy Data (Optional)</h3>
+<p>If you don't want to populate the database yourself, you can load test data:</p>
 <pre><code>python manage.py loaddata dummy_data.json</code></pre>
 
-<h3>7. Reset All User Passwords (for Development)</h3>
+<h3>7. Reset Test User Passwords (Optional)</h3>
+<p>If you are using dummy data, reset the passwords for all test users (e.g. to '123123123'):p>
 <pre><code>python manage.py shell -c "from django.contrib.auth.models import User; [u.set_password('123123123') or u.save() for u in User.objects.all()]"</code></pre>
 
 <h3>8. Run Development Server</h3>
