@@ -150,9 +150,17 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['members_data'] = BoardMemberSerializer(instance.members.all(), many=True).data
-        if 'members' in rep:
-            del rep['members']
+        request = self.context.get('request')
+        
+        members_list = BoardMemberSerializer(instance.members.all(), many=True).data
+        
+        if request and request.method in ['PUT', 'PATCH', 'POST']:
+            rep['members_data'] = members_list
+            if 'members' in rep:
+                del rep['members']
+        else:
+            rep['members'] = members_list
+            
         return rep
 
 
