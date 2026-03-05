@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import Board, Task, Comment
+from ..models import Board, Task, Comment
 from users.models import UserProfile
 from django.contrib.auth.models import User
 
 
 class BoardMemberSerializer(serializers.ModelSerializer): #Member zu einem Board adden
     email = serializers.EmailField(source='user.email', read_only=True)
-    fullname = serializers.CharField(source='user.username', read_only=True)
+    fullname = serializers.CharField(source='user.first_name', read_only=True)
 
     class Meta:
         model = UserProfile
@@ -22,13 +22,13 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class TaskDetailSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
-    comment_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'comment_count', 'board']
+        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'comments_count', 'board']
 
-    def get_comment_count(self, obj):
+    def get_comments_count(self, obj):
         return obj.comments.count()
 
     def to_representation(self, instance): #Wandelt in JSON um fürs Frontend
@@ -96,6 +96,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
         many=True,
         required=False,
     )
+    owner_id = serializers.PrimaryKeyRelatedField(source='owner', read_only=True)
 
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
@@ -116,7 +117,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Board
-        fields = ['id', 'title', 'emails', 'tasks', 'members', 'member_count', 'ticket_count', 'tasks_to_do_count', 'tasks_high_prio_count']
+        fields = ['id', 'title', 'emails', 'tasks', 'members', 'member_count', 'ticket_count', 'tasks_to_do_count', 'tasks_high_prio_count', 'owner_id']
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
@@ -126,14 +127,14 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
 
 class CreateTaskSerializer(serializers.ModelSerializer):
-    comment_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'comment_count', 'board']
+        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'comments_count', 'board']
         read_only_fields = ['comments'] 
 
-    def get_comment_count(self, obj):
+    def get_comments_count(self, obj):
         return obj.comments.count()
 
     def to_representation(self, instance):

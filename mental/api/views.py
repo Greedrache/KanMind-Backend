@@ -6,7 +6,7 @@ from django.db.models import Q
 from mental.models import Board, Task, Comment
 from .serializers import BoardDetailSerializer, CommentSerializer, CreateBoardSerializer, CreateTaskSerializer, TaskDetailSerializer, BoardSerializer
 from rest_framework.views import APIView, Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework import status
 
 from django.contrib.auth.models import User
@@ -31,9 +31,20 @@ class CreateBoardView(generics.ListCreateAPIView):
         serializer.save(owner=profile)
 
 
+class IsBoardMemberOrOwner(BasePermission):
+    message = 'forbidden' #When the user is not authenticated or not a member/owner of the board, this message will be returned in the response :)
+
+    def has_object_permission(self, request, view, obj):
+        if not request.user.is_authenticated:
+            return False
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        return obj.owner == profile or obj.members.filter(id=profile.id).exists()
+
+
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardDetailSerializer
+    permission_classes = [IsAuthenticated, IsBoardMemberOrOwner]
 
 
 
@@ -73,7 +84,7 @@ class TaskCommentView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         task_id = self.kwargs.get('task_pk')
-        author = self.request.user.username if self.request.user.is_authenticated else "Gast"
+        author = self.request.user.first_name if self.request.user.is_authenticated else "Gast"
         serializer.save(task_id=task_id, author=author)
 
 
@@ -84,7 +95,7 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         if self.request.user.is_authenticated:
-            serializer.save(author=self.request.user.username)
+            serializer.save(author=self.request.user.first_name)
         else:
             serializer.save(author="Gast")
 
@@ -105,7 +116,7 @@ class EmailCheckView(APIView):
             {
                 'id': profile.id,
                 'email': user.email,
-                'fullname': user.username,
+                'fullname': user.first_name,
             },
             status=status.HTTP_200_OK,
         )
