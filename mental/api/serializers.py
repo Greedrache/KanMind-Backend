@@ -150,9 +150,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['members_data'] = BoardMemberSerializer(instance.members.all(), many=True).data #umbenenannt zu members_data damit es bei Postman nicht zu Verwirrung kommt, da es ja eigentlich die IDs der Mitglieder sein sollten, aber hier werden die Daten der Mitglieder zurückgegeben
-        if 'members' in rep:
-            del rep['members']
+        rep['members'] = BoardMemberSerializer(instance.members.all(), many=True).data
         return rep
 
 

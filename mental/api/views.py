@@ -31,6 +31,8 @@ class CreateBoardView(generics.ListCreateAPIView):
         serializer.save(owner=profile)
 
 
+from rest_framework.exceptions import NotFound
+
 class IsBoardMemberOrOwner(BasePermission):
     message = 'forbidden' #When the user is not authenticated or not a member/owner of the board, this message will be returned in the response :)
 
@@ -40,6 +42,33 @@ class IsBoardMemberOrOwner(BasePermission):
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
         return obj.owner == profile or obj.members.filter(id=profile.id).exists()
 
+class IsTaskBoardMemberOrOwner(BasePermission):
+    message = 'forbidden'
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+            
+        if request.method == 'POST' and 'board' in request.data:
+            board_id = request.data.get('board')
+            try:
+                board = Board.objects.get(id=board_id)
+            except Board.DoesNotExist:
+                raise NotFound(detail="Board not found") # returns 404 Error if the board does not exist
+            
+            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            if not (board.owner == profile or board.members.filter(id=profile.id).exists()):
+                return False
+                
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if not request.user.is_authenticated:
+            return False
+        if not obj.board:
+            return True
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        return obj.board.owner == profile or obj.board.members.filter(id=profile.id).exists()
 
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Board.objects.all()
@@ -49,12 +78,13 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CreateTaskView(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTaskBoardMemberOrOwner]
     queryset = Task.objects.all()
     serializer_class = CreateTaskSerializer
 
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated, IsTaskBoardMemberOrOwner]
     queryset = Task.objects.all()
     serializer_class = TaskDetailSerializer
 
@@ -82,21 +112,53 @@ class ReviewTasksView(generics.ListAPIView):
 
 class TaskCommentView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         task_id = self.kwargs.get('task_pk')
+        try:
+            task = Task.objects.get(id=task_id)
+        except Task.DoesNotExist:
+            raise NotFound(detail="Task not found")
+            
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        if not (task.board.owner == profile or task.board.members.filter(id=profile.id).exists()):
+            self.permission_denied(self.request, message='forbidden')
+            
         return Comment.objects.filter(task_id=task_id) #Gibt nur die Kommentare die zu dem Task gehören zurück
 
     def perform_create(self, serializer):
         task_id = self.kwargs.get('task_pk')
+        try:
+            task = Task.objects.get(id=task_id)
+        except Task.DoesNotExist:
+            raise NotFound(detail="Task not found")
+            
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        if not (task.board.owner == profile or task.board.members.filter(id=profile.id).exists()):
+            self.permission_denied(self.request, message='forbidden')
+            
         author = self.request.user.first_name if self.request.user.is_authenticated else "Gast"
         serializer.save(task_id=task_id, author=author)
 
 
 
+class IsCommentBoardMemberOrOwner(BasePermission):
+    message = 'forbidden'
+    
+    def has_object_permission(self, request, view, obj):
+        if not request.user.is_authenticated:
+            return False
+        task = obj.task
+        if not task or not task.board:
+            return True
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        return task.board.owner == profile or task.board.members.filter(id=profile.id).exists()
+
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated, IsCommentBoardMemberOrOwner]
 
     def perform_update(self, serializer):
         if self.request.user.is_authenticated:
