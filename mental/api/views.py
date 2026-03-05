@@ -60,19 +60,23 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class AssignedTasksView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = TaskDetailSerializer
 
     def get_queryset(self):
-        return Task.objects.all()
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        return Task.objects.filter(assignee=profile)
         
 
 
 
 class ReviewTasksView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = TaskDetailSerializer
 
     def get_queryset(self):
-        return Task.objects.all()
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        return Task.objects.filter(reviewer=profile)
         
 
 class TaskCommentView(generics.ListCreateAPIView):

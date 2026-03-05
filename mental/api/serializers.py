@@ -97,6 +97,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
         required=False,
     )
     owner_id = serializers.PrimaryKeyRelatedField(source='owner', read_only=True)
+    owner_data = BoardMemberSerializer(source='owner', read_only=True)
 
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
@@ -117,7 +118,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Board
-        fields = ['id', 'title', 'emails', 'tasks', 'members', 'member_count', 'ticket_count', 'tasks_to_do_count', 'tasks_high_prio_count', 'owner_id']
+        fields = ['id', 'title', 'emails', 'tasks', 'members', 'member_count', 'ticket_count', 'tasks_to_do_count', 'tasks_high_prio_count', 'owner_id', 'owner_data']
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
