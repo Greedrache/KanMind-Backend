@@ -49,6 +49,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CreateTaskView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Task.objects.all()
     serializer_class = CreateTaskSerializer
 

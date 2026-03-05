@@ -122,13 +122,19 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['members'] = BoardMemberSerializer(instance.members.all(), many=True).data
+        rep['members_data'] = BoardMemberSerializer(instance.members.all(), many=True).data #umbenenannt zu members_data damit es bei Postman nicht zu Verwirrung kommt, da es ja eigentlich die IDs der Mitglieder sein sollten, aber hier werden die Daten der Mitglieder zurückgegeben
+        if 'members' in rep:
+            del rep['members']
         return rep
 
 
 
 class CreateTaskSerializer(serializers.ModelSerializer):
     comments_count = serializers.SerializerMethodField()
+    board = serializers.PrimaryKeyRelatedField(
+        queryset=Board.objects.all(),
+        error_messages={'does_not_exist': 'This Board does not exist.'}
+    )
 
     class Meta:
         model = Task
