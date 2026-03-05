@@ -23,18 +23,46 @@ class CommentSerializer(serializers.ModelSerializer):
 class TaskDetailSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     comments_count = serializers.SerializerMethodField()
+    assignee = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(),
+        allow_null=True,
+        required=False,
+        error_messages={'does_not_exist': 'The specified assignee does not exist.'}
+    )
+    reviewer = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(),
+        allow_null=True,
+        required=False,
+        error_messages={'does_not_exist': 'The specified reviewer does not exist.'}
+    )
+    assignee_id = serializers.PrimaryKeyRelatedField(
+        source='assignee',
+        queryset=UserProfile.objects.all(),
+        allow_null=True,
+        required=False,
+        write_only=True,
+        error_messages={'does_not_exist': 'The specified assignee does not exist.'}
+    )
+    reviewer_id = serializers.PrimaryKeyRelatedField(
+        source='reviewer',
+        queryset=UserProfile.objects.all(),
+        allow_null=True,
+        required=False,
+        write_only=True,
+        error_messages={'does_not_exist': 'The specified reviewer does not exist.'}
+    )
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'comments_count', 'board']
+        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'reviewer_id', 'assignee', 'assignee_id', 'status', 'comments', 'comments_count', 'board']
 
     def get_comments_count(self, obj):
         return obj.comments.count()
 
     def to_representation(self, instance): #Wandelt in JSON um fürs Frontend
         rep = super().to_representation(instance)
-        rep['reviewer'] = BoardMemberSerializer(instance.reviewer).data if instance.reviewer else None #Wenn es Existiert, dann wird der Reviewer mit dem BoardMemberSerializer serialisiert, ansonsten wird None zurückgegeben
-        rep['assignee'] = BoardMemberSerializer(instance.assignee).data if instance.assignee else None #Wenn es Existiert, dann wird der Assignee mit dem BoardMemberSerializer serialisiert, ansonsten wird None zurückgegeben
+        rep['reviewer'] = BoardMemberSerializer(instance.reviewer).data if instance.reviewer else None
+        rep['assignee'] = BoardMemberSerializer(instance.assignee).data if instance.assignee else None
         return rep #Gibt Anpassung zurück
 
 
@@ -135,10 +163,38 @@ class CreateTaskSerializer(serializers.ModelSerializer):
         queryset=Board.objects.all(),
         error_messages={'does_not_exist': 'This Board does not exist.'}
     )
+    assignee = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(),
+        allow_null=True,
+        required=False,
+        error_messages={'does_not_exist': 'The specified assignee does not exist.'}
+    )
+    reviewer = serializers.PrimaryKeyRelatedField(
+        queryset=UserProfile.objects.all(),
+        allow_null=True,
+        required=False,
+        error_messages={'does_not_exist': 'The specified reviewer does not exist.'}
+    )
+    assignee_id = serializers.PrimaryKeyRelatedField(
+        source='assignee',
+        queryset=UserProfile.objects.all(),
+        allow_null=True,
+        required=False,
+        write_only=True,
+        error_messages={'does_not_exist': 'The specified assignee does not exist.'}
+    )
+    reviewer_id = serializers.PrimaryKeyRelatedField(
+        source='reviewer',
+        queryset=UserProfile.objects.all(),
+        allow_null=True,
+        required=False,
+        write_only=True,
+        error_messages={'does_not_exist': 'The specified reviewer does not exist.'}
+    )
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'assignee', 'status', 'comments', 'comments_count', 'board']
+        fields = ['id', 'title', 'description', 'priority', 'due_date', 'reviewer', 'reviewer_id', 'assignee', 'assignee_id', 'status', 'comments', 'comments_count', 'board']
         read_only_fields = ['comments'] 
 
     def get_comments_count(self, obj):
