@@ -41,18 +41,21 @@ for user authentication, boards, and task management.
 <h3>4. Install Dependencies</h3>
 <pre><code>pip install -r requirements.txt</code></pre>
 
-<h3>5. Apply Migrations</h3>
+<h3>5. Create Migrations</h3>
+<pre><code>python manage.py makemigrations</code></pre>
+
+<h3>6. Apply Migrations</h3>
 <pre><code>python manage.py migrate</code></pre>
 
-<h3>6. Load Dummy Data (Optional)</h3>
+<h3>7. Load Dummy Data (Optional)</h3>
 <p>If you don't want to populate the database yourself, you can load test data:</p>
 <pre><code>python manage.py loaddata dummy_data.json</code></pre>
 
-<h3>7. Reset Test User Passwords (Optional)</h3>
+<h3>8. Reset Test User Passwords (Optional)</h3>
 <p>If you are using dummy data, reset the passwords for all test users (e.g. to '123123123'):p>
 <pre><code>python manage.py shell -c "from django.contrib.auth.models import User; [u.set_password('123123123') or u.save() for u in User.objects.all()]"</code></pre>
 
-<h3>8. Run Development Server</h3>
+<h3>9. Run Development Server</h3>
 <pre><code>python manage.py runserver</code></pre>
 
 <p>
